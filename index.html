@@ -2,266 +2,114 @@
 <html lang="sv">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1"> <title>Vi idag</title>
-
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vi idag</title>
 <style>
-:root{
-    --accent:#2b6cf6;
-    --bg:#f5f7fb;
-    --card:#ffffff;
-    --text:#222;
-}
-
-@media (prefers-color-scheme: dark){
-:root{
-    --bg:#121212;
-    --card:#1f1f1f;
-    --text:#f4f4f4;
-}
-}
-
-body{
-    margin:0;
-    font-family:system-ui,sans-serif;
-    background:var(--bg);
-    color:var(--text);
-}
-
-.container{
-    max-width:500px;
-    margin:auto;
-    padding:20px;
-}
-
-.card{
-    background:var(--card);
-    border-radius:18px;
-    padding:20px;
-    box-shadow:0 4px 12px rgba(0,0,0,.1); }
-
-h1{
-    text-align:center;
-}
-
-.question{
-    display:none;
-}
-
-.question.active{
-    display:block;
-}
-
-button{
-    width:100%;
-    margin-top:12px;
-    padding:15px;
-    border:none;
-    border-radius:12px;
-    background:var(--accent);
-    color:white;
-    font-size:16px;
-    cursor:pointer;
-}
-
-.secondary{
-    background:#777;
-}
-
-.choice{
-    display:block;
-    margin:12px 0;
-}
-
-input[type=text],
-input[type=time],
-textarea{
-    width:100%;
-    padding:12px;
-    border-radius:10px;
-    border:1px solid #ccc;
-    font-size:16px;
-    box-sizing:border-box;
-}
-
-textarea{
-    height:90px;
-}
+body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f5f5f7;margin:0}
+.container{max-width:520px;margin:20px auto;padding:20px}
+.card{background:#fff;border-radius:16px;padding:20px;box-shadow:0 2px 10px rgba(0,0,0,.08)}
+h1{text-align:center;margin:0}
+.subtitle{text-align:center;color:#666;margin:6px 0 20px}
+.step{display:none}
+.step.active{display:block}
+button{width:100%;padding:14px;margin-top:10px;border:none;border-radius:12px;background:#0a84ff;color:#fff;font-size:16px}
+.secondary{background:#8e8e93}
+input[type=time],input[type=text],textarea{width:100%;padding:10px;border-radius:10px;border:1px solid #ccc;box-sizing:border-box}
+textarea{height:90px}
+#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#1c1c1e;color:#fff;padding:12px 18px;border-radius:10px;display:none}
+.progress{text-align:center;color:#666;margin-bottom:10px}
 </style>
 </head>
-
 <body>
-
 <div class="container">
 <div class="card">
-
 <h1>Vi idag</h1>
+<div class="subtitle">En snabb check-in</div>
+<div class="progress" id="progress">Steg 1 av 5</div>
 
-<div id="q1" class="question active">
-<h2>Ses idag?</h2>
-
-<button onclick="setMeeting('Ja')">Ja</button>
-<button onclick="setMeeting('Nej')">Nej</button>
-<button onclick="setMeeting('Oklart')">Oklart</button>
-
-<div id="callbackBox" style="display:none;margin-top:15px;">
+<div id="s1" class="step active">
+<h3>Ses idag?</h3>
+<button onclick="meeting='Ja';show(2)">Ja</button>
+<button onclick="meeting='Nej';show(4)">Nej</button>
+<button onclick="meeting='Oklart';document.getElementById('cb').style.display='block'">Oklart</button>
+<div id="cb" style="display:none;margin-top:12px">
 Återkopplar kl.
-<input type="time" id="callbackTime">
-<button onclick="nextToMood()">Fortsätt</button>
+<input id="callback" type="time">
+<button onclick="show(4)">Fortsätt</button>
+</div>
 </div>
 
+<div id="s2" class="step">
+<h3>Var?</h3>
+<label><input type="radio" name="place" value="Hos mig"> Hos mig</label><br>
+<label><input type="radio" name="place" value="Hos dig"> Hos dig</label><br>
+<label><input type="radio" name="place" value="Annan plats" onchange="other.style.display='block'"> Annan plats</label>
+<div id="other" style="display:none;margin-top:8px"><input id="otherPlace" type="text" placeholder="Annan plats"></div>
+<button class="secondary" onclick="show(1)">← Tillbaka</button>
+<button onclick="show(3)">Nästa</button>
 </div>
 
-<div id="q2" class="question">
-<h2>Var?</h2>
-
-<label class="choice"><input type="radio" name="place" value="Hos mig"> Hos mig</label> <label class="choice"><input type="radio" name="place" value="Hos dig"> Hos dig</label>
-
-<label class="choice">
-<input type="radio" name="place" value="Annan plats"> Annan plats </label>
-
-<input type="text" id="otherPlace" placeholder="Annan plats">
-
-<button onclick="showTime()">Nästa</button>
-
+<div id="s3" class="step">
+<h3>Vilken tid?</h3>
+<input id="time" type="time">
+<button class="secondary" onclick="show(2)">← Tillbaka</button>
+<button onclick="show(4)">Nästa</button>
 </div>
 
-<div id="q3" class="question">
-<h2>Vilken tid?</h2>
-
-<input type="time" id="meetingTime">
-
-<button onclick="nextToMood()">Nästa</button>
-
+<div id="s4" class="step">
+<h3>Övergripande lägesbild</h3>
+<label><input type="checkbox" value="Trött"> Trött</label><br>
+<label><input type="checkbox" value="Irriterad"> Irriterad</label><br>
+<label><input type="checkbox" value="Hungrig"> Hungrig</label><br>
+<label><input type="checkbox" value="Glad"> Glad</label><br>
+<label><input type="checkbox" value="Mysbehov högt"> Mysbehov högt</label>
+<button class="secondary" onclick="show(meeting==='Ja'?3:1)">← Tillbaka</button>
+<button onclick="show(5)">Nästa</button>
 </div>
 
-<div id="q4" class="question">
-
-<h2>Övergripande lägesbild</h2>
-
-<label class="choice"><input type="checkbox" value="Trött"> Trött</label> <label class="choice"><input type="checkbox" value="Irriterad"> Irriterad</label> <label class="choice"><input type="checkbox" value="Hungrig"> Hungrig</label> <label class="choice"><input type="checkbox" value="Glad"> Glad</label> <label class="choice"><input type="checkbox" value="Mysbehov högt"> Mysbehov högt</label>
-
-<button onclick="showComment()">Nästa</button>
-
-</div>
-
-<div id="q5" class="question">
-
-<h2>Något mer?</h2>
-
+<div id="s5" class="step">
+<h3>Något mer?</h3>
 <textarea id="comment"></textarea>
-
-<button onclick="createMessage()">Skicka till Messenger</button>
-
-<button class="secondary" onclick="location.reload()">Rensa formulär</button>
-
+<button class="secondary" onclick="show(4)">← Tillbaka</button>
+<button onclick="copyAnswers()">📋 Kopiera svar</button>
+<button class="secondary" onclick="location.reload()">🔄 Ny check-in</button>
 </div>
 
-</div>
-</div>
+</div></div>
+<div id="toast">Svaren har kopierats. Öppna Messenger och klistra in.</div>
 
 <script>
-
 let meeting="";
-
-function hideAll(){
-document.querySelectorAll(".question").forEach(q=>q.classList.remove("active"));
+function show(n){
+ document.querySelectorAll(".step").forEach(x=>x.classList.remove("active"));
+ document.getElementById("s"+n).classList.add("active");
+ document.getElementById("progress").textContent="Steg "+n+" av 5";
 }
-
-function setMeeting(answer){
-
-meeting=answer;
-
-if(answer==="Ja"){
-hideAll();
-q2.classList.add("active");
+function copyAnswers(){
+ let txt="Vi idag\n\n";
+ txt+="🕒 "+new Date().toLocaleTimeString("sv-SE",{hour:"2-digit",minute:"2-digit"})+"\n\n";
+ txt+="Ses idag?\n"+meeting+"\n\n";
+ if(meeting==="Ja"){
+  let p=document.querySelector("input[name=place]:checked");
+  let place=p?p.value:"";
+  if(place==="Annan plats") place=document.getElementById("otherPlace").value;
+  txt+="Var?\n"+place+"\n\n";
+  txt+="Tid\n"+document.getElementById("time").value+"\n\n";
+ }
+ if(meeting==="Oklart"){
+  txt+="Återkopplar kl.\n"+document.getElementById("callback").value+"\n\n";
+ }
+ txt+="Lägesbild\n";
+ document.querySelectorAll("#s4 input[type=checkbox]:checked").forEach(c=>txt+="• "+c.value+"\n");
+ if(document.getElementById("comment").value.trim()){
+   txt+="\nNågot mer?\n"+document.getElementById("comment").value.trim();
+ }
+ navigator.clipboard.writeText(txt).then(()=>{
+   let t=document.getElementById("toast");
+   t.style.display="block";
+   setTimeout(()=>t.style.display="none",2500);
+ });
 }
-
-else if(answer==="Nej"){
-nextToMood();
-}
-
-else{
-document.getElementById("callbackBox").style.display="block";
-}
-
-}
-
-function showTime(){
-hideAll();
-q3.classList.add("active");
-}
-
-function nextToMood(){
-hideAll();
-q4.classList.add("active");
-}
-
-function showComment(){
-hideAll();
-q5.classList.add("active");
-}
-
-function createMessage(){
-
-let text="Vi idag\n\n";
-
-let now=new Date();
-
-text+="🕒 "+
-now.toLocaleTimeString("sv-SE",{hour:"2-digit",minute:"2-digit"})+"\n\n";
-
-text+="Ses idag?\n"+meeting+"\n\n";
-
-if(meeting==="Ja"){
-
-let place=document.querySelector('input[name="place"]:checked');
-
-let placeText="";
-
-if(place){
-
-placeText=place.value;
-
-if(place.value==="Annan plats"){
-placeText=document.getElementById("otherPlace").value;
-}
-
-}
-
-text+="Var?\n"+placeText+"\n\n";
-
-text+="Tid\n"+document.getElementById("meetingTime").value+"\n\n";
-
-}
-
-if(meeting==="Oklart"){
-
-text+="Återkopplar kl.\n"+
-document.getElementById("callbackTime").value+"\n\n";
-
-}
-
-text+="Lägesbild\n";
-
-document.querySelectorAll("#q4 input[type=checkbox]:checked").forEach(c=>{
-text+="• "+c.value+"\n";
-});
-
-let comment=document.getElementById("comment").value.trim();
-
-if(comment){
-text+="\nNågot mer?\n"+comment;
-}
-
-navigator.clipboard.writeText(text);
-
-alert("Meddelandet är kopierat.");
-
-window.open("https://m.me","_blank");
-
-}
-
 </script>
-
 </body>
 </html>
